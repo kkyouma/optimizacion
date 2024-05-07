@@ -1,0 +1,175 @@
+--- Distribuciones ---
+
+def obj_function(x, y, z):
+    return np.sin(4*x) - x**2 + 10*x + np.cos(3*y) - y**2 + 12*y + np.tan(2*z) - z*2 + 8*z
+
+# Iniciar contador de tiempo
+start_time =  time.perf_counter()
+
+# En caso de querer minimizar se parte desde +infinito
+max_value = -np.inf
+
+count = 0
+for i in range(1, 10000):
+    x_value = np.random.uniform(0, 10)
+    y_value = np.random.uniform(0, 10)
+    z_value = np.random.uniform(0, 10)
+
+    value = obj_function(x_value, y_value, z_value)
+    if value > max_value:
+        count += 1
+        max_value = value
+        parameters = [x_value, y_value, z_value]
+
+# Terminar contador de tiempo
+total_time = time.perf_count() - start_time
+print(parameters)
+
+--- Tiempos de ejecucion ---
+
+# Se define la funcion a estudiar.
+def function(x): 
+    return 20*x-0.5*x**2
+
+# Definimos en forma de funcion el codigo que queremos iterar.
+def get_optimization(i): 
+    
+    x = np.linspace(0,30,i) 
+    
+    max_value = -np.inf 
+    count = 0 
+    
+    # Reutilizamos codigo anterior de fuerza bruta.
+    for x_value in x: 
+        count +=1
+        value = function(x_value)
+        
+        if value > max_value:
+            max_value = value
+            parameters = [x_value, max_value]
+        #print("Solution =",  parameters)
+
+
+if __name__ == "__main__":
+    steps = [100, 200, 500, 1000, 2000, 10000, 100000, 1000000]
+    time_list = [] 
+    
+    for i in steps:
+        start_time =  time.perf_counter() # Inciamos el conteo
+        get_optimization(i)
+        total_time =  time.perf_counter() - start_time
+        time_list.append(total_time) # Guardamos el tiempo de ejecucion
+
+	# Crear un DataFrame con la cantidad de pasos y el tiempo
+	df = pd.DataFrame({"Steps": steps, "Time (s)": time_list})
+	display(df)
+
+--- Graficacion 3D ---
+
+from mpl_toolkits import mplot3d
+
+X, Y = np.meshgrid(x, y)
+Z = obj_function(X, Y)
+
+fig = plt.figure(figsize=(5,5))
+ax = plt.axes(projection="3d")
+
+ax.set_zlabel("Eficiencia")
+
+ax.plot_wireframe(X, Y, Z, alpha=0.1)
+ax.plot_surface(X, Y, Z, cmap="viridis", alpha=0.4)
+
+# Es posible usar *parameters para desempaquetar el punto (*args).
+ax.scatter(parameters[0], parameters[1], parameters[2], color="red", s=100)
+
+--- Programacin Lineal ---
+
+def Restriccion1(x): 
+    return 600 - x
+
+def Restriccion2(x):  
+    return (800 - x) / 2
+
+valores_x = np.linspace(0, 1000, 100) 
+
+A = np.array([[1, 1], [1, 2]])
+B = np.array([600, 800])
+interseccion = np.linalg.solve(A, B)
+interseccion =list(interseccion)
+
+--- Newton - Raphson ---
+
+x0 = 40 # Punto xn de partida arbitrario
+TOL = 1e-6
+max_iter = 100
+
+def obj_function(x):
+    return 3 * x * (x - 20) ** 3
+
+dfx = sp.diff(obj_function(x), x)
+
+def get_newton_optimization(x0, TOL=1e-6, max_iter=100):
+    count = 0
+    for _ in range(max_iter):
+        count += 1
+        fx0 = obj_function(x0)
+        dfx0 = dfx.subs(x, x0)
+        
+        # Aplicar formula para raíz xn+1
+        x1 = x0 - float(fx0 / dfx0)
+        
+        if abs(x1 - x0) < TOL:
+            break
+        x0 = x1
+
+    return (x1, count)
+
+
+root, iterations = get_newton_optimization(x0)
+print(f"La raíz es: {root: .3f}, encontrada en {iterations} iteraciones")
+
+--- Metodo Hessiano ---
+
+class Hessian_Method:
+    def __init__(self, expression, variables):
+        self.expression = expression
+        self.variables = variables
+        self.grad = [sp.diff(expression, var) for var in self.variables]
+        self.H = sp.hessian(expression, self.variables)
+        self.critical_points = sp.solve(self.grad, self.variables, dict=True)
+
+    def determinants(self):
+        dets_dict = {}
+        for point in self.critical_points:
+            H_sub = self.H.subs(point)
+            dets = [H_sub[:i, :i].det() for i in range(1, H_sub.rows + 1)]
+            
+            dets_dict[tuple(point.values())] = dets
+        return dets_dict
+
+    def evaluate_points(self):
+        results = []
+
+        for point in self.critical_points:
+            H_sub = self.H.subs(point)
+            dets = [H_sub[:i, :i].det() for i in range(1, H_sub.rows + 1)]
+
+            if all(x > 0 for x in dets):
+                results.append((point, "minimo local"))
+            elif all(x < 0 for x in dets):
+                results.append((point, "maximo local"))
+            elif all(x == 0 for x in dets):
+                results.append((point, "no se puede determinar"))
+            else:
+                results.append((point, "punto de silla"))
+        return results
+
+    def get_all_parameters(self):
+        print(
+            f"Function: {self.expression}\n"
+            f"Grad: {self.grad}\n"
+            f"Critical Points: {self.critical_points}\n"
+            f"Determinants: {self.determinants()}"
+        )
+        display(self.H)
+        return None
