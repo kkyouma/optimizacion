@@ -115,6 +115,14 @@ ax.set_title('Gráfico de F(x, y)')
 plt.show()
 ```
 
+### Graficar contorno
+
+```python
+plt.contourf(X, Y, Z, levels=50, cmap='viridis')
+plt.colorbar(label='f(x, y)')
+plt.contour(X, Y, Z, levels=50, colors='blue')
+```
+
 ## Metodo del Descenso del Gradiente
 
 ```python
