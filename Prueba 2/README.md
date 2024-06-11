@@ -45,4 +45,5 @@ import pandas as pd # Ejemplo de librería
 print("Python:", sys.version)
 print("NumPy:", np.__version__)
 print("Pandas:", pd.__version__)
+print("Matplotlib", MatplotliborSeaborn3)
 ```
