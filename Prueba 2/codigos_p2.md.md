@@ -50,7 +50,7 @@ def newton_raphson_method(
 
 ```
 
-Para agregar puntos creados por numeros random
+### Con puntos aleatorios
 
 ```python
 def newton_random(
@@ -94,7 +94,7 @@ def newton_random(
     return info_collected
 ```
 
-- Para graficar
+### Graficar espacio
 
 ```python
 x = np.linspace(-20, 20, 100)
@@ -114,8 +114,6 @@ ax.set_title('Gráfico de F(x, y)')
 
 plt.show()
 ```
-
-![[Pasted image 20240609191831.png]]
 
 ## Metodo del Descenso del Gradiente
 
